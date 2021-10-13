@@ -1,9 +1,0 @@
-#Policy fails if the verification score is below 70
-package opa.pipelines.autoapprovaltest
-score {
-input.AUTOPILOT.output[0].logScore < 70
-}
-
-deny["Overall Score less than 70"] {
-score
-}
