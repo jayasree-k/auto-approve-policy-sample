@@ -1,34 +1,28 @@
-Autopilot::
-----------------
-#Policy fails if the verification score is below 70
-package opa.pipelines.autoapprovaltest
-score {
-input.AUTOPILOT.output[0].logScore < 70
-}
-
-deny["Overall Score less than 70"] {
-score
-}
-Jira:
--------
-#Policy fails if the jira is having Highest priority issue
-
-package jiraapprovalpolicy
+package pipeline.AllPolicies
 
 deny[msg] {
-some i
-status = input.JIRA.output[i].status;
-jiraId = input.JIRA.output[i].jiraId;
-priority = input.JIRA.output[i].priority;
-status != "Done";
-msg = sprintf("for jira id '%v' status is '%v' ",[jiraId,status])
-
+some i;
+bugs = input.SONARQUBE.output[i].bugs;
+project = input.SONARQUBE.output[i].project;
+RRating = input.SONARQUBE.output[i].reliabilityRating;
+SRating = input.SONARQUBE.output[i].securityRating;
+bugsN = to_number(bugs)
+contains(RRating,"E")
+contains(SRating,"E")
+bugsN >100
+msg = sprintf("for Project '%v' bugs are '%v', reliability rating is '%v', Security rating is '%v'",[project,bugsN,RRating,SRating])
 }
-Jenkins:
---------------
-#Policy fails if the Jenkins build is fail
 
-package pipeline.jiraapprovalpolicy
+deny[msg] {
+    some i
+    jiraId = input.JIRA.output[i].jiraId;
+    status = input.JIRA.output[i].status;
+    priority = input.JIRA.output[i].priority;
+    status != "Done";
+    priority ="Highest"
+    msg = sprintf("for jira id '%v' status is '%v' and priority is '%v' ",[jiraId,status,priority])
+
+} 
 
 deny[msg] {
 some i
@@ -40,27 +34,30 @@ msg = sprintf("for buildId '%v' result is '%v' ",[buildId,result])
 
 }
 
-SonarQube
---------------------
-package pipeline.SonarQube
+deny[msg] {
+some i
+projectName = input.BAMBOO.output[i].data.projectName;
+buildNumber = input.BAMBOO.output[i].data.buildNumber;
+buildState  = input.BAMBOO.output[i].data.buildState;
 
+buildState != "Successful";
+msg = sprintf("for projectName '%v' and the buildNumber '%v' state of  buildstate is '%v' ",[projectName,buildNumber,buildState])
 
-ReliabilityRating {
-some i;
-RRating = input.SONARQUBE.output[i].reliabilityRating;
-contains(RRating,"E")
+} 
+
+deny[msg] {
+some i
+project = input.JFROG.output[i].value;
+critical = input.JFROG.output[i].data.critical;
+critical > 10;
+msg = sprintf("for Project '%v' critical count is '%v' ",[project,critical])
+
 }
-SecurityRating {
-some i;
-SRating = input.SONARQUBE.output[i].securityRating;
-contains(SRating,"E")
+
+score {
+  input.AUTOPILOT.output[0].logScore < 70
 }
-Bugs {
-some i;
-bugs = input.SONARQUBE.output[i].bugs;
-bugsN=to_number(bugs)
-bugsN>100
+
+deny["Overall Score less than 70"] {
+  score
 }
-deny["RRating is E for atleast one project '%v'"]{ReliabilityRating}
-deny["RRating is E for atleast one proecject"]{SecurityRating}
-deny["Bugs are >100 for atleast one project"]{Bugs}
