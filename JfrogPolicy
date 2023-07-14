@@ -1,0 +1,12 @@
+#Policy fails if the JFROG is having Critical Counts
+
+package jfrogapprovalpolicy
+
+deny[msg] {
+some i
+project = input.JFROG.output[i].value;
+critical = input.JFROG.output[i].data.critical;
+critical > 10;
+msg = sprintf("for Project '%v' critical count is '%v' ",[project,critical])
+
+}
