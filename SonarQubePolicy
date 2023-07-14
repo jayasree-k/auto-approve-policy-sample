@@ -1,5 +1,6 @@
-package pipeline.SonarQube
+# Sample SonarQube policy
 
+package pipeline.SonarQube
 
 ReliabilityRating {
 some i;
@@ -17,6 +18,6 @@ bugs = input.SONARQUBE.output[i].bugs;
 bugsN=to_number(bugs)
 bugsN>100
 }
-deny["RRating is E for atleast one project '%v'"]{ReliabilityRating}
-deny["RRating is E for atleast one proecject"]{SecurityRating}
-deny["Bugs are >100 for atleast one project"]{Bugs}
+deny["If RRating is E for atleast one project - Deny "]{ReliabilityRating}
+deny["If RRating is E for atleast one proecject - Deny "]{SecurityRating}
+deny["If Bugs are >100 for atleast one project - Deny "]{Bugs}
