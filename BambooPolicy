@@ -1,0 +1,14 @@
+#Policy fails if the BAMBOO is having Build Issues
+
+package bambooapprovalpolicy
+
+deny[msg] {
+some i
+projectName = input.BAMBOO.output[i].data.projectName;
+buildNumber = input.BAMBOO.output[i].data.buildNumber;
+buildState  = input.BAMBOO.output[i].data.buildState;
+
+buildState != "Successful";
+msg = sprintf("for projectName '%v' and the buildNumber '%v' state of  buildstate is '%v' ",[projectName,buildNumber,buildState])
+
+} 
